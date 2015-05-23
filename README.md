@@ -29,7 +29,7 @@ var bundler = require('bundler.js'),
         }
     };
 
-bundler.bundle('bundle', actions, 'debug');
+bundler.bundle('bundle.json', actions, 'debug');
 ```
 
 ## Commandline Usage Examples
@@ -37,10 +37,6 @@ bundler.bundle('bundle', actions, 'debug');
 Using configuration file:
 ```bash
 $ bundle path/to/configuration.json mode
-```
-or without extension:
-```bash
-$ bundle path/to/configuration mode
 ```
 or specifying mode:
 ```bash

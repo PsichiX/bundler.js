@@ -1,3 +1,3 @@
 var bundler = require('../index.js');
 
-bundler.bundle('bundle', null, 'debug');
+bundler.bundle('bundle.json', null, 'debug');
