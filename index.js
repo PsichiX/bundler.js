@@ -9,12 +9,12 @@
  * @param {Object} config.compiler compiler configuration (per mode or global).
  * @param {Array} config.files list of files (you can specify action and variants (as logical expression) in path: "main.js @compile ? (code & html)").
  * @param {Array|Object} config.variants list of variants available for given bundle (per mode using map: {"mode": ["variant"]} or global using array: ["variant"]).
- * @param {Object|null} actions map of custom actions as functions: function(fileObject, bundleConfigObject, processedFileInfo:{path, id, action, variants}){}.
+ * @param {Object|null} actions map of custom actions as functions: function(fileObject, bundleConfigObject, processedFileInfo:{path, id, action, variants}, bundlerActions){}.
  * @param {String|null} mode name of mode used to produce bundle.
  */
 exports.bundle = function(config, actions, mode){
 
-	var version             = '1.0.0',
+	var version             = '1.0.1',
 	    fs                  = require('fs-extra'),
 	    path                = require('path'),
 	    compiler            = require('compiler.js'),
@@ -113,6 +113,34 @@ exports.bundle = function(config, actions, mode){
 	destinationBaseDir.length > 0 && destinationBaseDir[destinationBaseDir.length - 1] !== '/' && (destinationBaseDir += '/');
 
 	// perform bundle.
+	var bundlerActions = {
+		copy:    function(file, config, info){
+			var cf = sourceBaseDir + info.path,
+			    ct = destinationBaseDir + info.path;
+			if (fs.existsSync(cf)){
+				fs.copySync(cf, ct, {clobber: true});
+				verbose && console.log('File copied: ' + cf + ' -> ' + ct);
+			} else {
+				console.error('File does not exists: ' + JSON.stringify(info.file));
+			}
+		},
+		compile: function(file, config, info){
+			var cfg = {
+				verbose:      verbose,
+				entry:        sourceBaseDir + info.path,
+				intermediate: intermediateBaseDir + info.path,
+				output:       destinationBaseDir + info.path,
+				basedir:      sourceBaseDir
+			};
+			if (compilerOptions){
+				compilerOptions.hasOwnProperty('defines') && (cfg.defines = compilerOptions.defines);
+				compilerOptions.hasOwnProperty('lint') && (cfg.lint = compilerOptions.lint);
+				compilerOptions.hasOwnProperty('minify') && (cfg.minify = compilerOptions.minify);
+			}
+			fs.mkdirsSync(path.dirname(cfg.output));
+			compiler.compile(cfg);
+		}
+	};
 	console.log('Bundler.js v' + version);
 	verbose && mode && console.log('>>> Mode: ' + mode);
 	verbose && console.log('>>> Source base dir: ' + sourceBaseDir);
@@ -175,30 +203,11 @@ exports.bundle = function(config, actions, mode){
 			verbose && console.warn('File does not match variants: ' + JSON.stringify(f));
 			continue;
 		}
+		var info = {path: p, id: id, action: a, variants: v};
 		if (actions && actions[a] && actions[a] instanceof Function){
-			actions[a](f, config, {path: p, id: id, action: a, variants: v});
-		} else if (a === 'copy'){
-			var cf = sourceBaseDir + p,
-			    ct = destinationBaseDir + p;
-			(function(cf, ct){
-				fs.copySync(cf, ct, {clobber: true});
-				verbose && console.log('File copied: ' + cf + ' -> ' + ct);
-			})(cf, ct);
-		} else if (a === 'compile'){
-			var cfg = {
-				verbose:      verbose,
-				entry:        sourceBaseDir + p,
-				intermediate: intermediateBaseDir + p,
-				output:       destinationBaseDir + p,
-				basedir:      sourceBaseDir
-			};
-			if (compilerOptions){
-				compilerOptions.hasOwnProperty('defines') && (cfg.defines = compilerOptions.defines);
-				compilerOptions.hasOwnProperty('lint') && (cfg.lint = compilerOptions.lint);
-				compilerOptions.hasOwnProperty('minify') && (cfg.minify = compilerOptions.minify);
-			}
-			fs.mkdirsSync(path.dirname(cfg.output));
-			compiler.compile(cfg);
+			actions[a](f, config, info, bundlerActions);
+		} else if (bundlerActions[a]){
+			bundlerActions[a](f, config, info);
 		} else {
 			console.error('Cannot resolve file action: ' + JSON.stringify(f));
 		}
