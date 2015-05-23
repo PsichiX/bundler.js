@@ -1,0 +1,46 @@
+{
+  "verbose": true,
+  "source": "src",
+  "intermediate": {
+    "debug": "intermediate/debug",
+    "release": "intermediate/release"
+  },
+  "destination": {
+    "debug": "bin/debug",
+    "release": "bin/release"
+  },
+  "compiler": {
+    "debug": {
+      "lint": true,
+      "minify": false,
+      "defines": {
+        "DEBUG": true
+      }
+    },
+    "release": {
+      "lint": true,
+      "minify": true,
+      "defines": {
+        "RELEASE": true
+      }
+    }
+  },
+  "files": [
+    "a.png ? gfx & hq",
+    "b.png ? gfx & !hq",
+    "main.js @compile ? (code & html)"
+  ],
+  "variants": {
+    "debug": [
+      "html",
+      "code",
+      "gfx"
+    ],
+    "release": [
+      "html",
+      "code",
+      "gfx",
+      "hq"
+    ]
+  }
+}

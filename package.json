@@ -1,0 +1,31 @@
+{
+  "name": "bundler.js",
+  "version": "1.0.0",
+  "description": "Tool to produce application bundles.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "fs-extra": "^0.18.4",
+    "compiler.js": "^1.0.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PsichiX/bundler.js.git"
+  },
+  "keywords": [
+    "build",
+    "bundle"
+  ],
+  "author": "Patryk 'PsichiX' Budzynski <psichix@gmail.com> (http://psichix.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PsichiX/bundler.js/issues"
+  },
+  "homepage": "https://github.com/PsichiX/bundler.js#readme"
+}
