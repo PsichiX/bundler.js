@@ -36,9 +36,9 @@ bundler.bundle('bundle.json', actions, 'debug');
 
 Using configuration file:
 ```bash
-$ bundle path/to/configuration.json mode
+$ bundle path/to/configuration.json
 ```
-or specifying mode:
+and specifying mode:
 ```bash
 $ bundle path/to/configuration.json mode
 ```

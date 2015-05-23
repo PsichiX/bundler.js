@@ -14,7 +14,7 @@
  */
 exports.bundle = function(config, actions, mode){
 
-	var version             = '1.0.4',
+	var version             = '1.0.5',
 	    fs                  = require('fs-extra'),
 	    path                = require('path'),
 	    compiler            = require('compiler.js'),
