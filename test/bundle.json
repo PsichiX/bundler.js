@@ -26,9 +26,9 @@
     }
   },
   "files": [
-    "a.png ? gfx & hq",
-    "b.png ? gfx & !hq",
-    "main.js @compile ? (code & html)"
+    "a.png : gfx/a.png ? gfx & hq",
+    "b.png : gfx/b.png ? gfx & !hq",
+    "main.js : app.js @compile ? (code & html)"
   ],
   "variants": {
     "debug": [

@@ -14,7 +14,7 @@
  */
 exports.bundle = function(config, actions, mode){
 
-	var version             = '1.0.6',
+	var version             = '1.0.7',
 	    fs                  = require('fs-extra'),
 	    path                = require('path'),
 	    compiler            = require('compiler.js'),
@@ -111,9 +111,9 @@ exports.bundle = function(config, actions, mode){
 
 	// perform bundle.
 	var bundlerActions = {
-		copy:    function(file, config, info){
+		copy: function(file, config, info){
 			var cf = sourceBaseDir + info.path,
-			    ct = destinationBaseDir + info.path;
+			    ct = destinationBaseDir + info.pathTo;
 			if (fs.existsSync(cf)){
 				fs.copySync(cf, ct, {clobber: true});
 				verbose && console.log('File copied: ' + cf + ' -> ' + ct);
@@ -123,11 +123,11 @@ exports.bundle = function(config, actions, mode){
 		},
 		compile: function(file, config, info){
 			var cfg = {
-				verbose:      verbose,
-				entry:        sourceBaseDir + info.path,
+				verbose: verbose,
+				entry: sourceBaseDir + info.path,
 				intermediate: intermediateBaseDir + info.path,
-				output:       destinationBaseDir + info.path,
-				basedir:      sourceBaseDir
+				output: destinationBaseDir + info.pathTo,
+				basedir: sourceBaseDir
 			};
 			if (compilerOptions){
 				compilerOptions.hasOwnProperty('defines') && (cfg.defines = compilerOptions.defines);
@@ -144,7 +144,7 @@ exports.bundle = function(config, actions, mode){
 	verbose && console.log('>>> Destination base dir: ' + destinationBaseDir);
 	verbose && console.log('>>> Compiler options: ' + JSON.stringify(compilerOptions));
 	verbose && console.log('>>> Variants: ' + JSON.stringify(variants));
-	var i, c, f, oa, ov, p, id, a, v;
+	var i, c, f, oa, ov, op, pf, pt, id, a, v;
 	for (i = 0, c = files.length; i < c; ++i){
 		f = files[i];
 		verbose && console.log('');
@@ -152,47 +152,55 @@ exports.bundle = function(config, actions, mode){
 			oa = f.indexOf('@');
 			ov = f.indexOf('?');
 			if (oa < 0 && ov < 0){
-				p  = f;
+				pf = f;
 				id = f;
-				a  = 'copy';
-				v  = null;
+				a = 'copy';
+				v = null;
 			} else {
 				if (ov >= 0 && oa < 0){
-					p  = f.substring(0, ov);
-					id = p;
-					a  = 'copy';
-					v  = f.substring(ov + 1);
+					pf = f.substring(0, ov);
+					id = pf;
+					a = 'copy';
+					v = f.substring(ov + 1);
 				} else if (oa >= 0 && ov < 0){
-					p  = f.substring(0, oa);
-					id = p;
-					a  = f.substring(oa + 1);
-					v  = null;
+					pf = f.substring(0, oa);
+					id = pf;
+					a = f.substring(oa + 1);
+					v = null;
 				} else {
 					if (oa < ov){
-						p  = f.substring(0, oa);
-						id = p;
-						a  = f.substring(oa + 1, ov);
-						v  = f.substring(ov + 1);
+						pf = f.substring(0, oa);
+						id = pf;
+						a = f.substring(oa + 1, ov);
+						v = f.substring(ov + 1);
 					} else {
-						p  = f.substring(0, ov);
-						id = p;
-						a  = f.substring(oa + 1);
-						v  = f.substring(ov + 1, oa);
+						pf = f.substring(0, ov);
+						id = pf;
+						a = f.substring(oa + 1);
+						v = f.substring(ov + 1, oa);
 					}
 				}
 			}
 		} else {
 			if (typeof f.path === 'string'){
-				p = f.path;
+				pf = f.path;
 			} else {
 				console.error('Cannot resolve file path or action of: ' + JSON.stringify(f));
 				continue;
 			}
-			id = typeof f.id === 'string' ? f.id : p;
-			a  = typeof f.action === 'string' ? f.action : 'copy';
-			v  = typeof f.variants === 'string' ? f.variants : null;
+			id = typeof f.id === 'string' ? f.id : pf;
+			a = typeof f.action === 'string' ? f.action : 'copy';
+			v = typeof f.variants === 'string' ? f.variants : null;
 		}
-		p && (p = p.trim());
+		op = pf.indexOf(':');
+		if (op < 0){
+			pt = pf;
+		} else {
+			pt = pf.substring(op + 1);
+			pf = pf.substring(0, op);
+		}
+		pf && (pf = pf.trim());
+		pt && (pt = pt.trim());
 		id && (id = id.trim());
 		a && (a = a.trim());
 		v && (v = v.trim());
@@ -200,7 +208,7 @@ exports.bundle = function(config, actions, mode){
 			verbose && console.warn('File does not match variants: ' + JSON.stringify(f));
 			continue;
 		}
-		var info = {path: p, id: id, action: a, variants: v};
+		var info = {path: pf, pathTo: pt, id: id, action: a, variants: v};
 		if (actions && actions[a] && actions[a] instanceof Function){
 			actions[a](f, config, info, bundlerActions);
 		} else if (bundlerActions[a]){
@@ -246,17 +254,17 @@ exports.checkVariants = function(input, variants){
 			this.constructor = child;
 		}
 
-		ctor.prototype  = parent.prototype;
+		ctor.prototype = parent.prototype;
 		child.prototype = new ctor();
 	}
 
 	function SyntaxError(message, expected, found, offset, line, column){
-		this.message  = message;
+		this.message = message;
 		this.expected = expected;
-		this.found    = found;
-		this.offset   = offset;
-		this.line     = line;
-		this.column   = column;
+		this.found = found;
+		this.offset = offset;
+		this.line = line;
+		this.column = column;
 
 		this.name = "SyntaxError";
 	}
@@ -375,7 +383,7 @@ exports.checkVariants = function(input, variants){
 
 			if (peg$cachedPos !== pos){
 				if (peg$cachedPos > pos){
-					peg$cachedPos        = 0;
+					peg$cachedPos = 0;
 					peg$cachedPosDetails = {line: 1, column: 1, seenCR: false};
 				}
 				advance(peg$cachedPosDetails, peg$cachedPos, pos);
@@ -391,7 +399,7 @@ exports.checkVariants = function(input, variants){
 			}
 
 			if (peg$currPos > peg$maxFailPos){
-				peg$maxFailPos      = peg$currPos;
+				peg$maxFailPos = peg$currPos;
 				peg$maxFailExpected = [];
 			}
 
@@ -544,27 +552,27 @@ exports.checkVariants = function(input, variants){
 							s5 = peg$parsews();
 							if (s5 !== peg$FAILED){
 								peg$reportedPos = s0;
-								s1              = peg$c6(s1, s2, s4, s5);
-								s0              = s1;
+								s1 = peg$c6(s1, s2, s4, s5);
+								s0 = s1;
 							} else {
 								peg$currPos = s0;
-								s0          = peg$c3;
+								s0 = peg$c3;
 							}
 						} else {
 							peg$currPos = s0;
-							s0          = peg$c3;
+							s0 = peg$c3;
 						}
 					} else {
 						peg$currPos = s0;
-						s0          = peg$c3;
+						s0 = peg$c3;
 					}
 				} else {
 					peg$currPos = s0;
-					s0          = peg$c3;
+					s0 = peg$c3;
 				}
 			} else {
 				peg$currPos = s0;
-				s0          = peg$c3;
+				s0 = peg$c3;
 			}
 			if (s0 === peg$FAILED){
 				s0 = peg$parseop_or();
@@ -596,27 +604,27 @@ exports.checkVariants = function(input, variants){
 							s5 = peg$parsews();
 							if (s5 !== peg$FAILED){
 								peg$reportedPos = s0;
-								s1              = peg$c9(s1, s2, s4, s5);
-								s0              = s1;
+								s1 = peg$c9(s1, s2, s4, s5);
+								s0 = s1;
 							} else {
 								peg$currPos = s0;
-								s0          = peg$c3;
+								s0 = peg$c3;
 							}
 						} else {
 							peg$currPos = s0;
-							s0          = peg$c3;
+							s0 = peg$c3;
 						}
 					} else {
 						peg$currPos = s0;
-						s0          = peg$c3;
+						s0 = peg$c3;
 					}
 				} else {
 					peg$currPos = s0;
-					s0          = peg$c3;
+					s0 = peg$c3;
 				}
 			} else {
 				peg$currPos = s0;
-				s0          = peg$c3;
+				s0 = peg$c3;
 			}
 			if (s0 === peg$FAILED){
 				s0 = peg$parseop_not();
@@ -646,23 +654,23 @@ exports.checkVariants = function(input, variants){
 						s4 = peg$parsews();
 						if (s4 !== peg$FAILED){
 							peg$reportedPos = s0;
-							s1              = peg$c12(s1, s3, s4);
-							s0              = s1;
+							s1 = peg$c12(s1, s3, s4);
+							s0 = s1;
 						} else {
 							peg$currPos = s0;
-							s0          = peg$c3;
+							s0 = peg$c3;
 						}
 					} else {
 						peg$currPos = s0;
-						s0          = peg$c3;
+						s0 = peg$c3;
 					}
 				} else {
 					peg$currPos = s0;
-					s0          = peg$c3;
+					s0 = peg$c3;
 				}
 			} else {
 				peg$currPos = s0;
-				s0          = peg$c3;
+				s0 = peg$c3;
 			}
 			if (s0 === peg$FAILED){
 				s0 = peg$parseprimary();
@@ -704,27 +712,27 @@ exports.checkVariants = function(input, variants){
 								s5 = peg$parsews();
 								if (s5 !== peg$FAILED){
 									peg$reportedPos = s0;
-									s1              = peg$c17(s1, s3, s5);
-									s0              = s1;
+									s1 = peg$c17(s1, s3, s5);
+									s0 = s1;
 								} else {
 									peg$currPos = s0;
-									s0          = peg$c3;
+									s0 = peg$c3;
 								}
 							} else {
 								peg$currPos = s0;
-								s0          = peg$c3;
+								s0 = peg$c3;
 							}
 						} else {
 							peg$currPos = s0;
-							s0          = peg$c3;
+							s0 = peg$c3;
 						}
 					} else {
 						peg$currPos = s0;
-						s0          = peg$c3;
+						s0 = peg$c3;
 					}
 				} else {
 					peg$currPos = s0;
-					s0          = peg$c3;
+					s0 = peg$c3;
 				}
 			}
 
@@ -768,19 +776,19 @@ exports.checkVariants = function(input, variants){
 					s3 = peg$parsews();
 					if (s3 !== peg$FAILED){
 						peg$reportedPos = s0;
-						s1              = peg$c21(s1, s2, s3);
-						s0              = s1;
+						s1 = peg$c21(s1, s2, s3);
+						s0 = s1;
 					} else {
 						peg$currPos = s0;
-						s0          = peg$c3;
+						s0 = peg$c3;
 					}
 				} else {
 					peg$currPos = s0;
-					s0          = peg$c3;
+					s0 = peg$c3;
 				}
 			} else {
 				peg$currPos = s0;
-				s0          = peg$c3;
+				s0 = peg$c3;
 			}
 			peg$silentFails--;
 			if (s0 === peg$FAILED){
