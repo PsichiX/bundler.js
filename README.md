@@ -23,9 +23,18 @@ $ npm install -g bundler.js
 ```javascript
 var bundler = require('bundler.js'),
     actions = {
-        copy: function(file, config, info, bundlerActions){
-            console.log('custom file copy: ' + JSON.stringify(file));
-            bundlerActions.copy(file, config, info);
+        flushAssetsList: function(file, config, info, bundleDirs, bundlerActions){
+            fs.writeFileSync(bundleDirs.destination + info.pathTo, JSON.stringify({assets: list}));
+            list = [];
+            console.log('FLUSH ASSETS LIST: ' + bundleDirs.destination + info.pathTo);
+            console.log();
+        },
+        listAsset: function(file, config, info, bundleDirs, bundlerActions){
+            list.push(info);
+        },
+        something: function(file, config, info, bundleDirs, bundlerActions){
+            console.log('DO SOMETHING');
+            console.log();
         }
     };
 
@@ -77,9 +86,10 @@ Commandline options:
     }
   },
   "files": [
-    "a.png ? gfx & hq",
-    "b.png ? gfx & !hq",
-    "main.js @compile ? (code & html)"
+    "a.png : gfx/a.png @listAsset ? gfx & hq",
+    "b.png : gfx/b.png @listAsset ? gfx & !hq",
+    "main.js : app.js @compile|something ? (code & html)",
+    "assets.json @flushAssetsList"
   ],
   "variants": {
     "debug": [

@@ -26,9 +26,10 @@
     }
   },
   "files": [
-    "a.png : gfx/a.png ? gfx & hq",
-    "b.png : gfx/b.png ? gfx & !hq",
-    "main.js : app.js @compile ? (code & html)"
+    "a.png : gfx/a.png @listAsset ? gfx & hq",
+    "b.png : gfx/b.png @listAsset ? gfx & !hq",
+    "main.js : app.js @compile|something ? (code & html)",
+    "assets.json @flushAssetsList"
   ],
   "variants": {
     "debug": [

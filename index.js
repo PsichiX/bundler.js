@@ -7,9 +7,9 @@
  * @param {String|Object} config.intermediate intermediate files base dir.
  * @param {String|Object} config.destination destination files base dir.
  * @param {Object} config.compiler compiler configuration (per mode or global).
- * @param {Array} config.files list of files (you can specify action and variants (as logical expression) in path: "main.js @compile ? (code & html)").
+ * @param {Array} config.files list of files (you can specify action and variants (as logical expression) in path: "main.js @compile|something ? (code & html)").
  * @param {Array|Object} config.variants list of variants available for given bundle (per mode using map: {"mode": ["variant"]} or global using array: ["variant"]).
- * @param {Object|null} actions map of custom actions as functions: function(fileObject, bundleConfigObject, processedFileInfo:{path, id, action, variants}, bundlerActions){}.
+ * @param {Object|null} actions map of custom actions as functions: function(fileObject, bundleConfigObject, processedFileInfo:{path, pathTo, id, action, variants}, bundlerActions){}.
  * @param {String|null} mode name of mode used to produce bundle.
  */
 exports.bundle = function(config, actions, mode){
@@ -111,33 +111,38 @@ exports.bundle = function(config, actions, mode){
 
 	// perform bundle.
 	var bundlerActions = {
-		copy: function(file, config, info){
-			var cf = sourceBaseDir + info.path,
-			    ct = destinationBaseDir + info.pathTo;
-			if (fs.existsSync(cf)){
-				fs.copySync(cf, ct, {clobber: true});
-				verbose && console.log('File copied: ' + cf + ' -> ' + ct);
-			} else {
-				console.error('File does not exists: ' + JSON.stringify(info.file));
-			}
-		},
-		compile: function(file, config, info){
-			var cfg = {
-				verbose: verbose,
-				entry: sourceBaseDir + info.path,
-				intermediate: intermediateBaseDir + info.path,
-				output: destinationBaseDir + info.pathTo,
-				basedir: sourceBaseDir
-			};
-			if (compilerOptions){
-				compilerOptions.hasOwnProperty('defines') && (cfg.defines = compilerOptions.defines);
-				compilerOptions.hasOwnProperty('lint') && (cfg.lint = compilerOptions.lint);
-				compilerOptions.hasOwnProperty('minify') && (cfg.minify = compilerOptions.minify);
-			}
-			fs.mkdirsSync(path.dirname(cfg.output));
-			compiler.compile(cfg);
-		}
-	};
+		    copy: function(file, config, info, bundleDirs){
+			    var cf = bundleDirs.source + info.path,
+			        ct = bundleDirs.destination + info.pathTo;
+			    if (fs.existsSync(cf)){
+				    fs.copySync(cf, ct, {clobber: true});
+				    verbose && console.log('File copied: ' + cf + ' -> ' + ct);
+			    } else {
+				    console.error('File does not exists: ' + JSON.stringify(info.file));
+			    }
+		    },
+		    compile: function(file, config, info, bundleDirs){
+			    var cfg = {
+				    verbose: verbose,
+				    entry: bundleDirs.source + info.path,
+				    intermediate: bundleDirs.intermediate + info.path,
+				    output: bundleDirs.destination + info.pathTo,
+				    basedir: bundleDirs.source
+			    };
+			    if (compilerOptions){
+				    compilerOptions.hasOwnProperty('defines') && (cfg.defines = compilerOptions.defines);
+				    compilerOptions.hasOwnProperty('lint') && (cfg.lint = compilerOptions.lint);
+				    compilerOptions.hasOwnProperty('minify') && (cfg.minify = compilerOptions.minify);
+			    }
+			    fs.mkdirsSync(path.dirname(cfg.output));
+			    compiler.compile(cfg);
+		    }
+	    },
+	    bundleDirs     = {
+		    source: sourceBaseDir,
+		    intermediate: intermediateBaseDir,
+		    destination: destinationBaseDir
+	    };
 	console.log('Bundler.js v' + version);
 	verbose && mode && console.log('>>> Mode: ' + mode);
 	verbose && console.log('>>> Source base dir: ' + sourceBaseDir);
@@ -198,6 +203,7 @@ exports.bundle = function(config, actions, mode){
 		} else {
 			pt = pf.substring(op + 1);
 			pf = pf.substring(0, op);
+			id = pt;
 		}
 		pf && (pf = pf.trim());
 		pt && (pt = pt.trim());
@@ -208,13 +214,18 @@ exports.bundle = function(config, actions, mode){
 			verbose && console.warn('File does not match variants: ' + JSON.stringify(f));
 			continue;
 		}
-		var info = {path: pf, pathTo: pt, id: id, action: a, variants: v};
-		if (actions && actions[a] && actions[a] instanceof Function){
-			actions[a](f, config, info, bundlerActions);
-		} else if (bundlerActions[a]){
-			bundlerActions[a](f, config, info);
-		} else {
-			console.error('Cannot resolve file action: ' + JSON.stringify(f));
+		var aa = a.split('|'),
+		    ai, ac;
+		for (ai = 0, ac = aa.length; ai < ac; ++ai){
+			a = aa[ai].trim();
+			var info = {path: pf, pathTo: pt, id: id, action: a, variants: v};
+			if (actions && actions[a] && actions[a] instanceof Function){
+				actions[a](f, config, info, bundleDirs, bundlerActions);
+			} else if (bundlerActions[a]){
+				bundlerActions[a](f, config, info, bundleDirs);
+			} else {
+				console.error('Cannot resolve file action: ' + JSON.stringify(f));
+			}
 		}
 	}
 
