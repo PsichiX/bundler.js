@@ -14,7 +14,7 @@
  */
 exports.bundle = function(config, actions, mode){
 
-	var version             = '1.0.8',
+	var version             = '1.0.9',
 	    fs                  = require('fs-extra'),
 	    path                = require('path'),
 	    compiler            = require('compiler.js'),
@@ -59,7 +59,7 @@ exports.bundle = function(config, actions, mode){
 				throw'Configuration `source` option is not specified for mode: ' + mode;
 			}
 		}
-		if (typeof intermediateBaseDir === 'object'){
+		if (intermediateBaseDir && typeof intermediateBaseDir === 'object'){
 			if (typeof mode !== 'string'){
 				throw '`mode` must be specified to process this bundle!';
 			}
@@ -106,7 +106,7 @@ exports.bundle = function(config, actions, mode){
 		throw 'destination base directory is not specified!';
 	}
 	sourceBaseDir.length > 0 && sourceBaseDir[sourceBaseDir.length - 1] !== '/' && (sourceBaseDir += '/');
-	intermediateBaseDir.length > 0 && intermediateBaseDir[intermediateBaseDir.length - 1] !== '/' && (intermediateBaseDir += '/');
+	intermediateBaseDir && intermediateBaseDir.length > 0 && intermediateBaseDir[intermediateBaseDir.length - 1] !== '/' && (intermediateBaseDir += '/');
 	destinationBaseDir.length > 0 && destinationBaseDir[destinationBaseDir.length - 1] !== '/' && (destinationBaseDir += '/');
 
 	// perform bundle.
@@ -125,17 +125,19 @@ exports.bundle = function(config, actions, mode){
 			    var cfg = {
 				    verbose: verbose,
 				    entry: bundleDirs.source + info.path,
-				    intermediate: bundleDirs.intermediate + info.path,
+				    intermediate: bundleDirs.intermediate ? bundleDirs.intermediate + info.path : null,
 				    output: bundleDirs.destination + info.pathTo,
 				    basedir: bundleDirs.source
 			    };
+			    var sync = -1;
 			    if (compilerOptions){
 				    compilerOptions.hasOwnProperty('defines') && (cfg.defines = compilerOptions.defines);
 				    compilerOptions.hasOwnProperty('lint') && (cfg.lint = compilerOptions.lint);
 				    compilerOptions.hasOwnProperty('minify') && (cfg.minify = compilerOptions.minify);
+				    compilerOptions.hasOwnProperty('sync') && (sync = compilerOptions.sync);
 			    }
 			    fs.mkdirsSync(path.dirname(cfg.output));
-			    compiler.compile(cfg);
+			    compiler.compile(cfg, sync);
 		    }
 	    },
 	    bundleDirs     = {
@@ -143,7 +145,7 @@ exports.bundle = function(config, actions, mode){
 		    intermediate: intermediateBaseDir,
 		    destination: destinationBaseDir
 	    };
-	console.log('Bundler.js v' + version);
+	verbose && console.log('Bundler.js v' + version);
 	verbose && mode && console.log('>>> Mode: ' + mode);
 	verbose && console.log('>>> Source base dir: ' + sourceBaseDir);
 	verbose && console.log('>>> Destination base dir: ' + destinationBaseDir);
