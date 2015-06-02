@@ -14,7 +14,7 @@
  */
 exports.bundle = function(config, actions, mode){
 
-	var version             = '1.0.9',
+	var version             = '1.0.10',
 	    fs                  = require('fs-extra'),
 	    path                = require('path'),
 	    compiler            = require('compiler.js'),
@@ -134,10 +134,9 @@ exports.bundle = function(config, actions, mode){
 				    compilerOptions.hasOwnProperty('defines') && (cfg.defines = compilerOptions.defines);
 				    compilerOptions.hasOwnProperty('lint') && (cfg.lint = compilerOptions.lint);
 				    compilerOptions.hasOwnProperty('minify') && (cfg.minify = compilerOptions.minify);
-				    compilerOptions.hasOwnProperty('sync') && (sync = compilerOptions.sync);
 			    }
 			    fs.mkdirsSync(path.dirname(cfg.output));
-			    compiler.compile(cfg, sync);
+			    compiler.compile(cfg);
 		    }
 	    },
 	    bundleDirs     = {
