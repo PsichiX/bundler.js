@@ -1,6 +1,6 @@
 {
   "name": "bundler.js",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Tool to produce application bundles.",
   "main": "index.js",
   "directories": {
@@ -10,7 +10,10 @@
     "fs-extra": "^0.18.4",
     "compiler.js": "^1.0.6"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "fs-extra": "^0.18.4",
+    "compiler.js": "^1.2.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

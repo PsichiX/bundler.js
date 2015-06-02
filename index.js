@@ -14,7 +14,7 @@
  */
 exports.bundle = function(config, actions, mode){
 
-	var version             = '1.0.10',
+	var version             = '1.0.11',
 	    fs                  = require('fs-extra'),
 	    path                = require('path'),
 	    compiler            = require('compiler.js'),
@@ -129,10 +129,8 @@ exports.bundle = function(config, actions, mode){
 				    output: bundleDirs.destination + info.pathTo,
 				    basedir: bundleDirs.source
 			    };
-			    var sync = -1;
 			    if (compilerOptions){
 				    compilerOptions.hasOwnProperty('defines') && (cfg.defines = compilerOptions.defines);
-				    compilerOptions.hasOwnProperty('lint') && (cfg.lint = compilerOptions.lint);
 				    compilerOptions.hasOwnProperty('minify') && (cfg.minify = compilerOptions.minify);
 			    }
 			    fs.mkdirsSync(path.dirname(cfg.output));
@@ -153,7 +151,6 @@ exports.bundle = function(config, actions, mode){
 	var i, c, f, oa, ov, op, pf, pt, id, a, v;
 	for (i = 0, c = files.length; i < c; ++i){
 		f = files[i];
-		verbose && console.log('');
 		if (typeof f === 'string'){
 			oa = f.indexOf('@');
 			ov = f.indexOf('?');
