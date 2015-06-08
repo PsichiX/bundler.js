@@ -14,13 +14,13 @@
  */
 exports.bundle = function(config, actions, mode){
 
-	var version             = '1.0.11',
+	var version             = '1.0.12',
 	    fs                  = require('fs-extra'),
 	    path                = require('path'),
 	    compiler            = require('compiler.js'),
 	    verbose             = false,
 	    sourceBaseDir       = '.',
-	    intermediateBaseDir = '.',
+	    intermediateBaseDir = null,
 	    destinationBaseDir  = '.',
 	    compilerOptions     = null,
 	    files               = null,
@@ -56,7 +56,7 @@ exports.bundle = function(config, actions, mode){
 			if (sourceBaseDir.hasOwnProperty(mode)){
 				sourceBaseDir = sourceBaseDir[mode];
 			} else {
-				throw'Configuration `source` option is not specified for mode: ' + mode;
+				throw 'Configuration `source` option is not specified for mode: ' + mode;
 			}
 		}
 		if (intermediateBaseDir && typeof intermediateBaseDir === 'object'){
@@ -66,7 +66,7 @@ exports.bundle = function(config, actions, mode){
 			if (intermediateBaseDir.hasOwnProperty(mode)){
 				intermediateBaseDir = intermediateBaseDir[mode];
 			} else {
-				throw'Configuration `intermediate` option is not specified for mode: ' + mode;
+				throw 'Configuration `intermediate` option is not specified for mode: ' + mode;
 			}
 		}
 		if (typeof destinationBaseDir === 'object'){
@@ -76,21 +76,21 @@ exports.bundle = function(config, actions, mode){
 			if (destinationBaseDir.hasOwnProperty(mode)){
 				destinationBaseDir = destinationBaseDir[mode];
 			} else {
-				throw'Configuration `destination` option is not specified for mode: ' + mode;
+				throw 'Configuration `destination` option is not specified for mode: ' + mode;
 			}
 		}
 		if (typeof mode === 'string'){
 			if (compilerOptions.hasOwnProperty(mode)){
 				compilerOptions = compilerOptions[mode];
 			} else {
-				throw'Configuration `compiler` option is not specified for mode: ' + mode;
+				throw 'Configuration `compiler` option is not specified for mode: ' + mode;
 			}
 		}
 		if (typeof variants !== 'array'){
 			if (variants.hasOwnProperty(mode)){
 				variants = variants[mode];
 			} else {
-				throw'Configuration `variants` option is not specified for mode: ' + mode;
+				throw 'Configuration `variants` option is not specified for mode: ' + mode;
 			}
 		}
 	}

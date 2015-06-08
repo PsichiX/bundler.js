@@ -1,6 +1,6 @@
 {
   "name": "bundler.js",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Tool to produce application bundles.",
   "main": "index.js",
   "directories": {
