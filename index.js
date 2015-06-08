@@ -14,7 +14,7 @@
  */
 exports.bundle = function(config, actions, mode){
 
-	var version             = '1.0.12',
+	var version             = '1.0.13',
 	    fs                  = require('fs-extra'),
 	    path                = require('path'),
 	    compiler            = require('compiler.js'),
@@ -125,7 +125,7 @@ exports.bundle = function(config, actions, mode){
 			    var cfg = {
 				    verbose: verbose,
 				    entry: bundleDirs.source + info.path,
-				    intermediate: bundleDirs.intermediate ? bundleDirs.intermediate + info.path : null,
+				    intermediate: bundleDirs.intermediate ? bundleDirs.intermediate + info.pathTo : null,
 				    output: bundleDirs.destination + info.pathTo,
 				    basedir: bundleDirs.source
 			    };
